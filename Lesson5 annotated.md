@@ -41,10 +41,12 @@ There's a couple of reasons this weight matrix is no good to you when you're doi
 ![](lesson5/2.png)
 
 There are some defaults as to what size this first one is, but the second one the size there is as big as you need it to be. So in your data bunch which you passed to your learner, from that we know how many activations you need. If you're doing classification, it's how many ever classes you have, if you're doing regression it's how many ever numbers you're trying to predict in the regression problem. So remember, if your data bunch is called `data` that'll be called `data.c`. So we'll add for you this weight matrix of size `data.c` by however much was in the previous layer.
+Me: This is the last weight matrix at the very end, we replace it with 2 matrices, you make the last one equal to the size of the output classes you want. 
+Classification vs regression problem??
 
 [[11:08](https://youtu.be/uQtTwhpv7Ew?t=668)]
 
-Okay so now we need to train those because initially these weight matrices are full of random numbers. Because new weight matrices are always full of random numbers if they are new. And these ones are new. We're just we've grabbed them and thrown them in there, so we need to train them. But the other layers are not new. The other layers are good at something. What are they good at? Let's remember that [Zeiler and Fergus paper](https://arxiv.org/pdf/1311.2901.pdf). Here are examples of some visualization of some filters some some weight matrices in the first layer and some examples of some things that they found.
+**Okay so now we need to train those because initially these weight matrices are full of random numbers. Because new weight matrices are always full of random numbers if they are new.** And these ones are new. We're just we've grabbed them and thrown them in there, so we need to train them. But the other layers are not new. The other layers are good at something. What are they good at? Let's remember that [Zeiler and Fergus paper](https://arxiv.org/pdf/1311.2901.pdf). Here are examples of some visualization of some filters some some weight matrices in the first layer and some examples of some things that they found.
 
 ![](lesson5/3.png)
 
@@ -66,7 +68,7 @@ To start with, we definitely need to train these new weights because they're ran
 
 ![](lesson5/6.png)
 
-Let's freeze all of those other layers. So what does that mean? All that means is that we're asking fastai and PytTorch that when we train (however many epochs we do), when we call fit, don't back propagate the gradients back into those layers. In other words, when you go `parameters=parameters - learning rate * gradient`, only do it for the new layers, don't bother doing it for the other layers, That's what freezing means - just means don't update those parameters.
+**Let's freeze all of those other layers. So what does that mean? All that means is that we're asking fastai and PytTorch that when we train (however many epochs we do), when we call fit, don't back propagate the gradients back into those layers.** In other words, when you go **`parameters=parameters - learning rate * gradient`**, only do it for the new layers, don't bother doing it for the other layers, That's what freezing means - just means don't update those parameters.
 
 So it'll be a little bit faster as well because there's a few less calculations to do. It'll take up a little bit less memory because there's a few less gradients that we have to store. But most importantly it's not going to change weights that are already better than nothing - they're better than random at the very least.
 
@@ -74,12 +76,16 @@ So that's what happens when you call freeze. It doesn't freeze the whole thing. 
 
 #### Unfreezing and Using Discriminative Learning Rates
 
+Me: Look up Discriminative Learning Rates
+
 Then what happens next? After a while we say "okay this is looking pretty good. We probably should train the rest of the network now". So we unfreeze. Now we're gonna chain the whole thing, but we still have a pretty good sense that these new layers we added to the end probably need more training, and these ones right at the start (e.g. diagonal edges) probably don't need much training at all. So we split our our model into a few sections. And we say "let's give different parts of the model different learning rates." So the earlier part of the model, we might give a learning rate of `1e- 5`, and the later part of the model we might give a learning rate of `1e-3`, for example. 
 
 So what's gonna happen now is that we can keep training the entire network. But because the learning rate for the early layers is smaller, it's going to move them around less because we think they're already pretty good and also if it's already pretty good to the optimal value, if you used a higher learning rate, it could kick it out - it could actually make it worse which we really don't want to happen. So this this process is called using **discriminative learning rates**. You won't find much online about it because I think we were kind of the first to use it for this purpose (or at least talked about it extensively. Maybe other probably other people used it without writing it down). So most of the stuff you'll find about this will be fastai students. But it's starting to get more well-known slowly now. It's a really really important concept. For transfer learning, without using this, you just can't get nearly as good results.
 
 How do we do discriminative learning rates in fastai? Anywhere you can put a learning rate in fastai such as with the `fit` function. The first thing you put in is the number of epochs and then the second thing you put in is learning rate (the same if you use `fit_one_cycle`). The learning rate, you can put a number of things there:
 
+WHAT CAN YOU PUT IN FOR LR:
+Me: what is slice? 
 - You can put a single number (e.g. `1e-3`):  Every layer gets the same learning rate. So you're not using discriminative learning rates. 
 - You can write a slice. So you can write slice with a single number (e.g. `slice(1e-3)`): The final layers get a learning rate of whatever you wrote down (`1e-3`), and then all the other layers get the same learning rate which is that divided by 3. So all of the other layers will be `1e-3/3`. The last layers will be `1e-3`. 
 - You can write slice with two numbers (e.g. `slice(1e-5, 1e-3)`). The final layers (these randomly added layers) will still be again `1e-3`. The first layers will get `1e-5`, and the other layers will get learning rates that are equally spread between those two - so multiplicatively equal. If there were three layers, there would be `1e-5`, `1e-4`, `1e-3`, so equal multiples each time.
@@ -88,9 +94,12 @@ One slight tweak - to make things a little bit simpler to manage, we don't actua
 
 By default (at least with a CNN), you'll get three layer groups. If you say `slice(1e-5, 1e-3)`, you will get `1e-5` learning rate for the first layer group, `1e-4` for the second, `1e-3` for the third. So now if you go back and look at the way that we're training, hopefully you'll see that this makes a lot of sense.
 
-This divided by three thing, it's a little weird and we won't talk about why that is until part two of the course. It's a specific quirk around batch normalization. So we can discuss that in the advanced topic if anybody's interested.
+*This divided by three thing, it's a little weird and we won't talk about why that is until part two of the course. It's a specific quirk around batch normalization. So we can discuss that in the advanced topic if anybody's interested.
 
 That is fine tuning. Hopefully that makes that a little bit less mysterious. 
+
+Me: Add to Resume, improve regularization by calculating learning rates, using discriminative LR
+Figure out what is going on with the /3 Does the ResNet/CNN have 3 layer groups at the end that we unfreeze? 
 
 [[19:49](https://youtu.be/uQtTwhpv7Ew?t=1189)]
 
@@ -122,7 +131,7 @@ Here's another worksheet. What I've done here is I have copied over those two we
 
 So here are two weight matrices (in orange). Initially they were random. We can train them with gradient descent. In the original data, the user IDs and movie IDs were numbers like these. To make life more convenient, I've converted them to numbers from 1 to 15 (`user_idx` and `movie_idx`). So in these columns, for every rating, I've got user ID movie ID rating using these mapped numbers so that they're contiguous starting at one.
 
-Now I'm going to replace user ID number 1 with this vector - the vector contains a 1 followed by 14 zeros. Then user number 2, I'm going to replace with a vector of 0 and then 1 and then 13 zeros. So movie ID 14, I've also replaced with another vector which is 13 zeros and then a 1 and then a 0. These are called one-hot encodings, by the way. This is not part of a neural net. This is just like some input pre-processing where I'm literally making this my new input:
+Now I'm going to replace user ID number 1 with this vector - the vector contains a 1 followed by 14 zeros. Then user number 2, I'm going to replace with a vector of 0 and then 1 and then 13 zeros. So movie ID 14, I've also replaced with another vector which is 13 zeros and then a 1 and then a 0. These are called one-hot encodings, by the way. This is not part of a neural net. This is just like some *input pre-processing where I'm literally making this my new input:
 
 ![](lesson5/9.png)
 
@@ -152,9 +161,9 @@ So let's lay that out again. Here's our final version (*recommend watching a vid
 
 This is the same weight matrices again - exactly the same I've copied them over. And here's those user IDs and movie IDs again. But this time, I've laid them out just in a normal tabular form just like you would expect to seein the input to your model. And this time, I have got exactly the same set of activations here (user embedding) that I had in movielens_1hot. But in this case I've calculated these activations using Excels `OFFSET` function which is an array look up. This version (`movielens_emb`) is identical to `movielens_1hot` version, but obviously it's much less memory intensive and much faster because I don't actually create the one hot encoded matrix and I don't actually do a matrix multiply. That matrix multiply is nearly all multiplying by zero which is a total waste of time. 
 
-So in other words, multiplying by a one hot encoded matrix is identical to doing an array lookup. Therefore **we should always do the array lookup version**, and therefore we have a specific way of saying I want to do a matrix multiplication by a one hot encoded matrix without ever actually creating it. I'm just instead going to pass in a bunch of integers and pretend they're one not encoded. And that is called an **embedding**.
+*So in other words, multiplying by a one hot encoded matrix is identical to doing an array lookup. Therefore **we should always do the array lookup version**, and therefore we have a specific way of saying I want to do a matrix multiplication by a one hot encoded matrix without ever actually creating it. I'm just instead going to pass in a bunch of integers and pretend they're one not encoded. And that is called an **embedding**.
 
-You might have heard this word "embedding" all over the places as if it's some magic advanced mathy thing, but embedding means look something up in an array. But it's interesting to know that looking something up in an array is mathematically identical to doing a matrix product by a one hot encoded matrix. And therefore, an embedding fits very nicely in our standard model of our neural networks work.
+You might have heard this word **"embedding" all over the places as if it's some magic advanced mathy thing, but embedding means look something up in an array. But it's interesting to know that looking something up in an array is mathematically identical to doing a matrix product by a one hot encoded matrix.** And therefore, an embedding fits very nicely in our standard model of our neural networks work.
 
 Now suddenly it's as if we have another whole kind of layer. It's a kind of layer where we get to look things up in an array. But we actually didn't do anything special. We just added this computational shortcut - this thing called an embedding which is simply a fast memory efficient way of multiplying by hot encoded matrix.
 
@@ -163,6 +172,7 @@ So this is really important. Because when you hear people say embedding, you nee
 Here's the thing though, it has kind of interesting semantics. Because when you do multiply something by a one hot encoded matrix, you get this nice feature where the rows of your weight matrix, the values only appear (for row number one, for example) where you get user ID number one in your inputs. So in other words you kind of end up with this weight matrix where certain rows of weights correspond to certain values of your input. And that's pretty interesting. It's particularly interesting here because (going back to a kind of most convenient way to look at this) because the only way that we can calculate an output activation is by doing a dot product of these two input vectors. That means that they kind of have to correspond with each other. There has to be some way of saying if this number for a user is high and this number for a movie is high, then the user will like the movie. So the only way that can possibly make sense is if **these numbers represent features of personal taste and corresponding features of movies**. For example, the movie has John Travolta in it and user ID likes John Travolta, then you'll like this movie. 
 
 We're not actually deciding the rows mean anything. We're not doing anything to make the rows mean anything. But the only way that this gradient descent could possibly come up with a good answer is if it figures out what the aspects of movie taste are and the corresponding features of movies are. So those underlying kind of features that appear that are called **latent factors** or **latent features**. They're these hidden things that were there all along, and once we train this neural net, they suddenly appear.
+ME: This is how features arise as numbers, because their vectors correspond to their IDs/user/movies. 
 
 #### Bias [[33:08](https://youtu.be/uQtTwhpv7Ew?t=1988)]
 
@@ -184,11 +194,11 @@ Yes, you can. And we will learn how to (should be) in the next lesson.
 
 **Question**: Can we have an explanation of what the first argument in `fit_one_cycle` actually represents? Is it equivalent to an epoch?
 
-Yes, the first argument to `fit_one_cycle` or `fit` is number of epochs. In other words, an epoch is looking at every input once. If you do 10 epochs, you're looking at every input ten times. So there's a chance you might start overfitting if you've got lots of lots of parameters and a high learning rate. If you only do one epoch, it's impossible to overfit, and so that's why it's kind of useful to remember how many epochs you're doing.
+*Yes, the first argument to `fit_one_cycle` or `fit` is number of epochs. In other words, an epoch is looking at every input once. If you do 10 epochs, you're looking at every input ten times. So there's a chance you might start overfitting if you've got lots of lots of parameters and a high learning rate. If you only do one epoch, it's impossible to overfit, and so that's why it's kind of useful to remember how many epochs you're doing.
 
 **Question**: What is an affine function? 
 
-An affine function is a linear function. I don't know if we need much more detail than that. If you're multiplying things together and adding them up, it's an affine function. I'm not going to bother with the exact mathematical definition, partly because I'm a terrible mathematician and partly because it doesn't matter. But if you just remember that you're multiplying things together and then adding them up, that's the most important thing. It's linear. And therefore if you put an affine function on top of an affine function, that's just another affine function. You haven't won anything at all. That's a total waste of time. So you need to sandwich it with any kind of non-linearity pretty much works - including replacing the negatives with zeros which we call ReLU. So if you do affine, ReLU, affine, ReLU, affine, ReLU,  you have a deep neural network.
+An affine function is a linear function. I don't know if we need much more detail than that. If you're multiplying things together and adding them up, it's an affine function. I'm not going to bother with the exact mathematical definition, partly because I'm a terrible mathematician and partly because it doesn't matter. But if you just remember that you're multiplying things together and then adding them up, that's the most important thing. It's linear. And therefore if you put an affine function on top of an affine function, that's just another affine function. You haven't won anything at all. That's a total waste of time. So you need to sandwich it with any kind of non-linearity pretty much works - including replacing the negatives with zeros which we call ReLU. **So if you do affine, ReLU, affine, ReLU, affine, ReLU,  you have a deep neural network.**
 
 [[38:25](https://youtu.be/uQtTwhpv7Ew?t=2305)]
 
