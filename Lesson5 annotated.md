@@ -750,7 +750,22 @@ L(x,w) = MSE(predicted[M(x,w)]vs,actual)
 
 # NOTES STOPPED HERE BY MYSELF ON WED 5/15
 
+Feedforward is just doing the calculations thru the matrix -> this is running the model thru its epochs
+epoch is updating each weight
+Backprop updates each of the weights in each of the matrixes/layers/hidden layers
+
+Backpropagation: weights = weights - weights.grad * LR
+Chain Rule 
+dLoss/dWeight2 = dLoss/dNeuronLast x dNeuronLast/dWeight2 -> 
+dN8 
+
 a.grad = saves the gradient of...??
+
+FREEZING 
+require.grad = {true,false}
+This blocks weights
+They only unfreeze the last two layers. 
+
 
 <img src="https://latex.codecogs.com/gif.latex?w_{t}=w_{t-1}-lr\times&space;\frac{dL}{dw_{t-1}}" title="w_{t}=w_{t-1}-lr\times \frac{dL}{dw_{t-1}}" />
 
