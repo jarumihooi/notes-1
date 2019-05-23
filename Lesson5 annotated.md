@@ -1,3 +1,11 @@
+Me: Bias is a parameter, its learned the same way as any other weight. 
+(Talking about Bias in the recommender system example) 
+m by n tensor, m=movies, n=feature-input-values
+
+
+
+
+
 # Lesson 5
 
 [Video](https://youtu.be/uQtTwhpv7Ew) / [Lesson Forum](https://forums.fast.ai/t/lesson-5-official-resources-and-updates/30863) 
